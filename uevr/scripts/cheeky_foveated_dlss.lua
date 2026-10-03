@@ -354,7 +354,7 @@ uevr.lua.add_script_panel("Cheeky Foveated DLSS", function()
         if draft.Enabled then
             section("Center")
             if rr then combo("Center RR preset", "RrCenterPreset", {[0]="Game/default",[4]="D",[5]="E",[6]="F"})
-            else combo("Center preset", "CenterPreset", {[0]="Game/default",[5]="E",[11]="K",[12]="L",[13]="M"}) end
+            else combo("Center preset", "CenterPreset", {[0]="Game/default",[5]="E",[10]="J",[11]="K",[12]="L",[13]="M"}) end
             slider("Center supersampling", "CenterSupersampling", 1, 2)
             slider("Fovea width", "Width", 0.2, 1)
             slider("Fovea height", "Height", 0.2, 1)
@@ -367,7 +367,7 @@ uevr.lua.add_script_panel("Cheeky Foveated DLSS", function()
             check("Peripheral DLAA", "PeripheralDlaa")
             if draft.PeripheralDlaa then
                 if rr then combo("Peripheral RR preset", "RrPeripheralPreset", {[0]="Game/default",[4]="D",[5]="E",[6]="F"})
-                else combo("Peripheral preset", "PeripheralDlaaPreset", {[5]="E",[11]="K",[12]="L",[13]="M"}) end
+                else combo("Peripheral preset", "PeripheralDlaaPreset", {[5]="E",[10]="J",[11]="K",[12]="L",[13]="M"}) end
                 slider("Periphery scale", "PeripheralDlaaScale", 0.2, 1)
             end
         end

@@ -1057,6 +1057,7 @@ extern "C" D3D11Evaluation* prepare_d3d11_private(
     mutable_parameters->Set("DLSS.Enable.Output.Subrects", 0);
     const bool resize_motion = !motion_vectors_low_res &&
         (reconstruction.output_width != crop.output_width || reconstruction.output_height != crop.output_height);
+    const bool center_motion_fix = settings.center_motion_vector_fix;
     CropMotionOffset offset{};
     bool correct_motion{};
     if (!force_reset && !gaze_reset && evaluation->reset == 0 && uses_coordinated_center(settings)) {
@@ -1078,7 +1079,7 @@ extern "C" D3D11Evaluation* prepare_d3d11_private(
             if (!correct_motion) { force_reset = true; offset = {}; }
         }
     }
-    if (resize_motion || correct_motion) {
+    if (resize_motion || correct_motion || center_motion_fix) {
         ID3D11Resource* motion{};
         parameters->Get("MotionVectors", &motion);
         evaluation->corrected_motion = create_crop_motion11(context, motion,

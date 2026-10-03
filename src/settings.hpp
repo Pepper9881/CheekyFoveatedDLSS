@@ -47,6 +47,7 @@ struct Settings {
     std::uint32_t rr_center_preset{};
     std::uint32_t rr_peripheral_preset{};
     float center_supersampling{1.0F};
+    bool center_motion_vector_fix{false};
     // AFW needs donors for both eye regions even when the source eye is known.
     // Coverage is opt-in. With both modes off, use calibrated per-eye settings.
     bool afw_manual_coverage{false};

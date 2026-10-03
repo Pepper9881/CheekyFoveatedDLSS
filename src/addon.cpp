@@ -719,7 +719,7 @@ void draw_openxr_gaze_diagnostics() {
                 label, "DLSS view 0x%llX (%u matches, %s)",
                 static_cast<unsigned long long>(view.dlss_view_id),
                 view.stable_matches,
-                view.marker_mapping ? "pixel marker" : view.projection_mapping ? "projection" : view.copy_mapping ? "copy" : view.packed_stereo_mapping ? "packed" : "exact"
+                view.marker_mapping ? "pixel marker" : view.projection_mapping ? "projection" : view.copy_mapping ? "copy" : view.packed_stereo_mapping ? "packed" : view.layout_mapping ? "stereo layout" : "exact"
             );
         } else {
             diagnostic_row(label, "Waiting (%u matches)", view.stable_matches);
@@ -773,6 +773,10 @@ void load_settings_from_reshade() noexcept {
     static_cast<void>(reshade::get_config_value(
         nullptr, config_section, "CenterPreset",
         settings.center_preset
+    ));
+    static_cast<void>(reshade::get_config_value(
+        nullptr, config_section, "CenterMotionVectorFix",
+        settings.center_motion_vector_fix
     ));
     static_cast<void>(reshade::get_config_value(
         nullptr, config_section, "CenterSupersampling", settings.center_supersampling
@@ -961,6 +965,10 @@ void save_settings_to_reshade(const Settings& settings) noexcept {
         settings.center_preset
     );
     reshade::set_config_value(
+        nullptr, config_section, "CenterMotionVectorFix",
+        settings.center_motion_vector_fix
+    );
+    reshade::set_config_value(
         nullptr, config_section, "CenterSupersampling", settings.center_supersampling
     );
     reshade::set_config_value(nullptr, config_section, "AfwManualCoverage", settings.afw_manual_coverage);
@@ -1125,12 +1133,13 @@ void draw_sr_controls(Settings& settings, bool& changed) {
         std::uint32_t& value,
         const bool allow_game_default
     ) {
-        const std::uint32_t values[]{0U, rr ? 4U : 5U, rr ? 5U : 11U, rr ? 6U : 12U, 13U};
+        const std::uint32_t values[]{0U, rr ? 4U : 5U, rr ? 5U : 10U, rr ? 6U : 11U, 12U, 13U};
         const char* labels[]{
             "Game/default",
             rr ? "D" : "E (Fastest)",
-            rr ? "E" : "K",
-            rr ? "F" : "L",
+            rr ? "E" : "J",
+            rr ? "F" : "K",
+            "L",
             "M",
         };
         const int first = (rr || allow_game_default) ? 0 : 1;
@@ -1151,6 +1160,12 @@ void draw_sr_controls(Settings& settings, bool& changed) {
     ImGui::SameLine();
     ImGui::TextDisabled("(Alt+Shift+/)");
     preset_combo(rr ? "Center RR preset" : "Center preset", rr ? settings.rr_center_preset : settings.center_preset, true);
+    if (!rr) {
+        changed |= ImGui::Checkbox("Fix motion-vector blur", &settings.center_motion_vector_fix);
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip(
+            "Copies the center motion region to zero offset on the GPU.\n"
+            "Adds GPU work.");
+    }
     static float supersampling_draft = 1.0F;
     static bool editing_supersampling{};
     if (!editing_supersampling) supersampling_draft = settings.center_supersampling;
@@ -1402,6 +1417,7 @@ void draw_sr_controls(Settings& settings, bool& changed) {
         settings.center_preset = defaults.center_preset;
         settings.center_supersampling = defaults.center_supersampling;
         supersampling_draft = defaults.center_supersampling;
+        settings.center_motion_vector_fix = defaults.center_motion_vector_fix;
         editing_supersampling = false;
         settings.peripheral_dlaa_preset = defaults.peripheral_dlaa_preset;
         peripheral_scale_draft = defaults.peripheral_dlaa_scale;

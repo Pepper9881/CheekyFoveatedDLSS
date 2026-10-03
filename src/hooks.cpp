@@ -4901,6 +4901,7 @@ void evaluate_nr_after_native_d3d12(
     // Resetting on every small movement prevents the denoiser from converging.
     contract.preserve_history_on_crop_move =
         rr || uses_coordinated_center(settings) || settings.eye_independent_coverage;
+    contract.center_motion_vector_fix = settings.center_motion_vector_fix;
     private_attempted = true;
 
     if (peripheral_ready && !d3d12_set_composite_base(

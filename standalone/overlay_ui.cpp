@@ -125,8 +125,8 @@ template<class T> void combo(const char* label, T& value, const char* names) {
 }
 
 void preset(const char* label, std::uint32_t& value, bool game_default) {
-    constexpr std::uint32_t values[]{0,5,11,12,13};
-    constexpr const char* names[]{"Game default", "E (fastest)", "K", "L", "M"};
+    constexpr std::uint32_t values[]{0,5,10,11,12,13};
+    constexpr const char* names[]{"Game default", "E (fastest)", "J", "K", "L", "M"};
     const int first = game_default ? 0 : 1;
     int selected{};
     for (int i = first; i < static_cast<int>(std::size(values)); ++i) if (values[i] == value) selected = i - first;
@@ -149,6 +149,12 @@ void draw_sr(Settings& s, bool rr) {
     ImGui::SeparatorText("Center quality");
     if (rr) { ImGui::TextUnformatted("Ray Reconstruction active"); rr_preset("Center RR preset",s.rr_center_preset); }
     else preset("Center preset", s.center_preset, true);
+    if (!rr) {
+        ImGui::Checkbox("Fix motion-vector blur", &s.center_motion_vector_fix);
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip(
+            "Copies the center motion region to zero offset on the GPU.\n"
+            "Adds GPU work.");
+    }
     slider("Center supersampling", s.center_supersampling, 1.0F, 2.0F, "%.2fx");
     ImGui::Checkbox("Peripheral DLAA", &s.peripheral_dlaa_enabled);
     if (s.peripheral_dlaa_enabled) {

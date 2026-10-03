@@ -19,10 +19,10 @@ The main controls and their defaults are:
 | Control | Default | Purpose |
 | --- | --- | --- |
 | Enable foveated DLSS-SR | On | Enables the main foveated Super Resolution path. |
-| Center preset | Game/default | Preserves the game's DLSS preset or overrides it with E, K, L, or M. |
+| Center preset | Game/default | Preserves the game's DLSS preset or overrides it with E, J, K, L, or M. |
 | Center supersampling | `1.00x` | Scales the center DLSS output by 1-2x per dimension, then area-downsamples to its original size. Applies on slider release. Supports input- and output-resolution motion vectors. |
 | Peripheral DLAA | On | Enables the auxiliary DLAA pass for the area outside the fovea. |
-| Peripheral preset | E (Fastest) | Selects E, K, L, or M for the peripheral DLAA pass. |
+| Peripheral preset | E (Fastest) | Selects E, J, K, L, or M for the peripheral DLAA pass. |
 | Periphery scale | `0.75` | Downscales the periphery further from the original render resolution. |
 | Fovea width / height | `0.55` / `0.45` | Sets the normalized size of the DLSS-processed region. |
 | Automatic stereo alignment | On | Uses OpenXR or usable Streamline projection data to align each eye without manual X adjustment. |

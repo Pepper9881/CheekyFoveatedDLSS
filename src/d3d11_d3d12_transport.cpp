@@ -1765,6 +1765,7 @@ bool evaluate_d3d11_via_d3d12(
     contract.reset = get_int(parameters, "Reset") != 0 || gaze_reset;
     contract.preserve_history_on_crop_move =
         uses_coordinated_center(transport_settings);
+    contract.center_motion_vector_fix = transport_settings.center_motion_vector_fix;
     contract.create_flags = create_flags;
     contract.perf_quality = get_ui(parameters, "PerfQualityValue");
     contract.jitter_x = get_float(parameters, "Jitter.Offset.X");

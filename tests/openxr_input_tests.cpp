@@ -91,9 +91,14 @@ struct Runtime {
             return binding_result;
         });
         FN("xrCreateActionSpace", [](XrSession, const XrActionSpaceCreateInfo*, XrSpace* space) {
+            // The owning action set must be attached before its action space may
+            // exist. Strict runtimes reject the earlier call and never hand out a
+            // handle, which would silently stop gaze for the whole session.
+            if (!attached) return XR_ERROR_ACTIONSET_NOT_ATTACHED;
             if (XR_SUCCEEDED(space_result)) *space = handle<XrSpace>(40); return space_result;
         });
         FN("xrDestroySpace", [](XrSpace) { return XR_SUCCESS; });
+        FN("xrEndFrame", [](XrSession, const XrFrameEndInfo*) { return XR_SUCCESS; });
         FN("xrAttachSessionActionSets", [](XrSession, const XrSessionActionSetsAttachInfo* info) {
             ++attaches;
             if (attached) return XR_ERROR_ACTIONSETS_ALREADY_ATTACHED;
@@ -186,6 +191,11 @@ struct Layer {
         XrViewState state{XR_TYPE_VIEW_STATE}; XrView views[2]{{XR_TYPE_VIEW},{XR_TYPE_VIEW}}; uint32_t count{};
         require(fn<PFN_xrLocateViews>("xrLocateViews")(session, &info, &state, 2, &count, views) == XR_SUCCESS, "Locate views failed");
         return snapshot();
+    }
+    // Presents one frame with no payload. The layer counts these frames before
+    // it may assume an input-less application is a settled renderer.
+    void frame() {
+        require(fn<PFN_xrEndFrame>("xrEndFrame")(session, nullptr) == XR_SUCCESS, "EndFrame failed");
     }
     CheekyGazeSnapshotV1 snapshot() {
         CheekyGazeSnapshotV1 result{};
@@ -384,6 +394,28 @@ int run_openxr_input_tests() {
             simulate(0);
             layer.sync(host);
             require(!valid(layer.snapshot()), "Disabling simulation restores physical gaze validity");
+        }
+        // A host that presents frames through this layer but never touches the
+        // action system is a settled renderer without input: it must receive
+        // runtime gaze through one standalone attachment, and the fallback must
+        // never add controller action sets to it.
+        Runtime::reset();
+        {
+            Layer layer;
+            for (unsigned i = 0; i < 89; ++i) layer.frame();
+            layer.locate(1);
+            require(!Runtime::attaches, "A renderer that has not settled must not receive a standalone attachment");
+            layer.frame();
+            layer.locate(2);
+            require(Runtime::attaches == 1 && Runtime::syncs == 1 && Runtime::bindings == 1,
+                "A settled renderer without input must attach gaze exactly once");
+            require(Runtime::attached_sets.size() == 1 && Runtime::active_sets.size() == 1,
+                "The standalone fallback must not add controller action sets");
+            require(valid(layer.locate(3)), "Standalone gaze must route after its own attachment");
+            const auto d = layer.diagnostics();
+            require(!d.realvr_detected && !d.host_action_sets_created && d.fallback_attach_calls == 1 &&
+                d.fallback_sync_calls == 2 && !d.host_sync_calls && d.space_result == XR_SUCCESS,
+                "Standalone attachment must follow its own attachment order");
         }
         Runtime::reset();
         { Layer layer; require(!valid(layer.locate(1)) && !Runtime::attaches && !Runtime::syncs,

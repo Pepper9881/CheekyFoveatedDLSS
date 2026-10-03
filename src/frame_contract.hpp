@@ -27,6 +27,7 @@ struct DlssFrameContract {
     std::uint32_t output_base_y{};
 
     bool motion_vectors_low_res{};
+    bool center_motion_vector_fix{};
     bool depth_inverted{};
     bool reset{};
     bool preserve_history_on_crop_move{};

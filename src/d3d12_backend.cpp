@@ -1737,6 +1737,7 @@ NgxResult evaluate_d3d12_backend(
             const auto& source_crop = display_crop ? *display_crop : crop;
             const bool resize_motion = !contract.motion_vectors_low_res &&
                 (source_crop.output_width != crop.output_width || source_crop.output_height != crop.output_height);
+            const bool center_motion_fix = contract.center_motion_vector_fix;
             CropMotionOffset offset{};
             bool correct_motion{};
             bool motion_corrected{};
@@ -1747,7 +1748,7 @@ NgxResult evaluate_d3d12_backend(
                     contract.motion_vector_scale_x, contract.motion_vector_scale_y, offset);
                 if (!correct_motion) { motion_reset = true; offset = {}; }
             }
-            if (resize_motion || correct_motion) {
+            if (resize_motion || correct_motion || center_motion_fix) {
                 auto* corrected = prepare_crop_motion12(command_list, inputs.motion_vectors,
                     inputs.mv_base_x, inputs.mv_base_y,
                     contract.motion_vectors_low_res ? crop.input_width : source_crop.output_width,

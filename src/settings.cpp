@@ -20,6 +20,7 @@ std::atomic<bool> d3d11_use_d3d12_transport{false};
 std::atomic<bool> peripheral_dlaa_enabled{true};
 std::atomic<std::uint32_t> peripheral_dlaa_scale_bits{0x3F400000U};
 std::atomic<std::uint32_t> center_preset{};
+std::atomic<bool> center_motion_vector_fix{false};
 std::atomic<std::uint32_t> rr_center_preset{}, rr_peripheral_preset{};
 std::atomic<std::uint32_t> center_supersampling_bits{0x3F800000U};
 std::atomic<bool> afw_manual_coverage{false};
@@ -160,6 +161,8 @@ Settings configured_settings() noexcept {
     settings.rr_peripheral_preset = rr_peripheral_preset.load(std::memory_order_acquire);
     settings.center_preset =
         center_preset.load(std::memory_order_acquire);
+    settings.center_motion_vector_fix =
+        center_motion_vector_fix.load(std::memory_order_acquire);
     settings.peripheral_dlaa_preset =
         peripheral_dlaa_preset.load(std::memory_order_acquire);
     settings.width = load_float(width_bits);
@@ -248,7 +251,7 @@ void update_settings(const Settings& settings) noexcept {
         std::clamp(settings.peripheral_dlaa_scale, 0.20F, 1.0F)
     );
     const auto valid_preset = [](const std::uint32_t value) noexcept {
-        return value == 5U || value == 11U || value == 12U || value == 13U;
+        return value == 5U || value == 10U || value == 11U || value == 12U || value == 13U;
     };
     store_float(center_supersampling_bits, std::isfinite(settings.center_supersampling)
         ? std::clamp(settings.center_supersampling, 1.0F, 2.0F) : 1.0F);
@@ -263,6 +266,10 @@ void update_settings(const Settings& settings) noexcept {
         settings.center_preset == 0U || valid_preset(settings.center_preset)
             ? settings.center_preset
             : 0U,
+        std::memory_order_release
+    );
+    center_motion_vector_fix.store(
+        settings.center_motion_vector_fix,
         std::memory_order_release
     );
     peripheral_dlaa_preset.store(
